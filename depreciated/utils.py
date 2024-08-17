@@ -3,6 +3,9 @@ from datetime import datetime
 from logging_config import logger
 from intents import nlp
 
+import re
+from datetime import datetime
+
 def clean_reminder_text(user_message, parsed_date, nlp):
     if isinstance(parsed_date, datetime):
         date_str = parsed_date.strftime('%Y-%m-%d %H:%M:%S')
@@ -26,14 +29,19 @@ def clean_reminder_text(user_message, parsed_date, nlp):
 
     # Further refinement using dependency parsing
     doc = nlp(cleaned_message)
+    relevant_tokens = []
     for token in doc:
-        if token.dep_ in ("nsubj", "nsubjpass", "dobj"):
-            cleaned_message = token.text
-    
-    cleaned_message = cleaned_message.strip()
+        if token.dep_ not in ("punct", "cc", "det", "aux", "mark"):  # Ignore less important parts of speech
+            relevant_tokens.append(token.text)
+
+    cleaned_message = " ".join(relevant_tokens).strip()
 
     # Ensure the final text is concise and accurate
-    return f"Reminder: {cleaned_message} on {date_str}"
+    if not cleaned_message:  # Avoid returning an empty string
+        cleaned_message = user_message.strip()
+
+    return f"{cleaned_message} on {date_str}"
+
 
 def extract_datetime(user_message, nlp):
     # Try to parse the datetime from the message using dateparser
