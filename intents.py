@@ -15,7 +15,16 @@ classifier = pipeline("text-classification", model="distilbert-base-uncased-fine
 
 def recognize_intent(user_message):
     user_message = user_message.lower()
-    doc = nlp(user_message)
+
+    if nlp is None:
+        logger.error("spaCy model is not available. Cannot process the message with spaCy.")
+        return "error"
+
+    try:
+        doc = nlp(user_message)
+    except Exception as e:
+        logger.error(f"Error processing message with spaCy: {e}")
+        return "error"
     
     # First, let's classify the message
     classification = classifier(user_message)[0]

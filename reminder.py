@@ -1,14 +1,19 @@
-import re, dateparser
+import re, dateparser, spacy
 from datetime import datetime, timedelta
 from spacy import Language
 from spacy.matcher import Matcher
 from logging_config import logger
 
+
 class Reminder:
     def __init__(self, user_id: int, message: str, nlp: Language):
         self.user_id = user_id
         self.original_message = message
-        self.nlp = nlp
+        # Check if nlp is provided, otherwise load the SpaCy model
+        if nlp is None:
+            self.nlp = spacy.load("en_core_web_sm")
+        else:
+            self.nlp = nlp
         self.cleaned_message = ""
         self.parsed_date = None
         self.process_message()
